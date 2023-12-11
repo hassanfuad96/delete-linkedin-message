@@ -1,0 +1,92 @@
+(function () {
+  const SEE_ALL_BUTTON_SELECTOR =
+    '.artdeco-button[aria-label="See all People you may know based on your recent activity"]';
+  const CONNECT_BUTTON_TEXT = 'Connect';
+  const SHOW_MORE_BUTTON_SELECTOR = '.scaffold-finite-scroll__load-button';
+
+  const randomDelay = (min, max) => {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  };
+
+  const simulateClick = async (element) => {
+    if (element) {
+      element.click();
+      await new Promise((resolve) => setTimeout(resolve, randomDelay(2000, 4000)));
+    }
+  };
+
+  const simulateKeyPress = async (element, char) => {
+    if (element) {
+      const currentValue = element.value;
+      const selectionStart = element.selectionStart;
+      const selectionEnd = element.selectionEnd;
+
+      const newValue =
+        currentValue.substring(0, selectionStart) +
+        char +
+        currentValue.substring(selectionEnd);
+
+      element.value = newValue;
+      element.setSelectionRange(newValue.length, newValue.length);
+
+      const inputEvent = new Event('input', { bubbles: true });
+      element.dispatchEvent(inputEvent);
+
+      await new Promise((resolve) => setTimeout(resolve, randomDelay(20, 50)));
+    }
+  };
+
+  const automateConnect = async () => {
+    await simulateClick(document.querySelector(SEE_ALL_BUTTON_SELECTOR));
+
+    const clickConnectButtons = async () => {
+      const connectButtons = document.querySelectorAll('.artdeco-button .artdeco-button__text');
+      for (const button of connectButtons) {
+        if (button.textContent.trim() === CONNECT_BUTTON_TEXT) {
+          button.closest('.artdeco-button').click();
+
+          await new Promise((resolve) => setTimeout(resolve, randomDelay(5000, 9000)));
+
+          const nameElement = document.querySelector('.artdeco-modal__content strong');
+          const name = nameElement ? nameElement.textContent.trim() : 'Investor';
+
+          await simulateClick(document.querySelector('.artdeco-button[aria-label="Add a note"]'));
+
+          await new Promise((resolve) => setTimeout(resolve, randomDelay(2000, 4000)));
+
+          const noteInput = document.querySelector('textarea[name="message"]');
+          if (noteInput) {
+            const customNote = `Hi ${name}, Im Dyla Razak, founder of RealmChat, a Messaging Commerce Platform. Seeking investment for our seed startup. Interested in a quick chat for potential opportunities?`;
+
+            for (const char of customNote) {
+              await simulateKeyPress(noteInput, char);
+            }
+
+            document.body.click();
+          }
+
+          await simulateClick(document.querySelector('.artdeco-button[aria-label="Send now"]'));
+
+          await new Promise((resolve) => setTimeout(resolve, randomDelay(10000, 15000)));
+        }
+      }
+    };
+
+    const loadMoreResults = async () => {
+      await clickConnectButtons();
+
+      const nextButton = document.querySelector('.artdeco-pagination__button--next');
+      if (nextButton) {
+        await simulateClick(nextButton);
+        await new Promise((resolve) => setTimeout(resolve, randomDelay(23000, 25000)));
+        await loadMoreResults();
+      }
+    };
+
+    setTimeout(async () => {
+      await loadMoreResults();
+    }, 2000);
+  };
+
+  automateConnect();
+})();
