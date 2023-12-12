@@ -114,6 +114,8 @@ const automateLinkedInConnection = async () => {
       await simulateClick(sendNowButton);
 
       console.log('Connection process completed successfully.');
+      // Go back to the previous page after successful connection
+      window.history.back();
     }
   } catch (error) {
     console.error('Error during automation:', error);
