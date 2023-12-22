@@ -1,0 +1,95 @@
+// Function to wait for a specified time
+const sleep = (milliseconds) => new Promise(resolve => setTimeout(resolve, milliseconds));
+
+// Function to simulate keypress
+const simulateKeypress = (element, text) => {
+    const event = new Event('input', { bubbles: true });
+    element.value = text;
+    element.dispatchEvent(event);
+};
+
+// Function to simulate a more human-like typing effect
+const typeWithDelay = async (element, text, delay = 100) => {
+    for (const char of text) {
+        element.value += char;
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+        await sleep(delay);
+    }
+};
+
+// Main function to perform the automation
+const automateMessaging = async () => {
+    try {
+        // Select all buttons with an ID starting with 'ember' within the message-overlay-trigger
+        const messageButtons = document.querySelectorAll('li.message-overlay-trigger button[id^="ember"]');
+
+        console.log(`Found ${messageButtons.length} message buttons.`);
+
+        // Iterate through each message button
+        for (let i = 0; i < messageButtons.length; i++) {
+            const messageButton = messageButtons[i];
+
+            console.log(`Processing profile ${i + 1}`);
+
+            // Store the initial credits information
+            const initialCreditsText = document.querySelector('.mr2.pv1.text-align-right');
+
+            // Simulate a click on the button
+            messageButton.click();
+            console.log('Clicked on the "Message" button within message-overlay-trigger.');
+
+            // Wait for a brief moment to allow the content to update
+            await sleep(2000);
+
+            // Extract person's name from the h2 element
+            const h2Element = document.querySelector('h2[aria-label^="Conversation with"]');
+            const personName = h2Element ? h2Element.querySelector('[data-anonymize="person-name"]').textContent.trim() : 'Investor';
+
+            console.log(`Person's Name: ${personName}`);
+
+            // Add a subject to the compose form
+            const subjectInput = document.querySelector('.compose-form__subject-field');
+            if (subjectInput) {
+                simulateKeypress(subjectInput, `Investment Opportunity`);
+            }
+
+            // Add a message to the textarea with a more human-like typing effect
+            const messageTextarea = document.querySelector('.compose-form__message-field');
+            if (messageTextarea) {
+                await typeWithDelay(messageTextarea, `Hi ${personName}, Im Dyla Razak, founder of RealmChat, a Messaging Commerce Platform. Seeking investment for our seed startup. Interested in a quick chat for potential opportunities?`);
+            }
+
+            // Wait for a moment after adding the message
+            await sleep(1000);
+
+            // Click on the "Send" button
+            const sendButton = document.querySelector('.artdeco-hoverable-trigger button._button_ps32ck._primary_ps32ck._left_ps32ck._container_iq15dg');
+            if (sendButton) {
+                sendButton.click();
+                console.log('Clicked on the "Send" button.');
+
+                // Wait for a moment after sending the message
+                await sleep(2000);
+
+                // Click on the close button to close the message overlay
+                const closeButton = document.querySelector('button[data-control-name="overlay.close_overlay"]');
+                if (closeButton) {
+                    closeButton.click();
+                    console.log('Clicked on the "Close" button.');
+
+                    // Add a delay before opening the next profile
+                    await sleep(3000); // Adjust the delay time as needed
+                } else {
+                    console.log('Close button not found.');
+                }
+            } else {
+                console.log('Send button not found.');
+            }
+        }
+    } catch (error) {
+        console.error('An error occurred:', error);
+    }
+};
+
+// Call the main function
+automateMessaging();
